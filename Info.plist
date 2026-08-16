@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>zh_CN</string>
 	<key>CFBundleExecutable</key>
-	<string>GrafanaProxy</string>
+	<string>SplitTunnel</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.joe.grafanaproxy</string>
+	<string>com.joe.splittunnel</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>GrafanaProxy</string>
+	<string>SplitTunnel</string>
 	<key>CFBundleDisplayName</key>
-	<string>GrafanaProxy</string>
+	<string>SplitTunnel</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

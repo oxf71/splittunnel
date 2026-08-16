@@ -1,4 +1,4 @@
-# GrafanaProxy — 菜单栏 SSH SOCKS5 隧道 + PAC 分流
+# SplitTunnel — 菜单栏 SSH SOCKS5 隧道 + PAC 域名分流
 
 一个自包含的 macOS 菜单栏小应用：内置 PAC 服务器 + SSH SOCKS5 隧道 + 系统 PAC 自动设置。
 用于让浏览器访问「IP 白名单」限制的站点（流量经指定远程服务器出口），不影响其它代理软件
@@ -7,16 +7,16 @@
 ## 构建
 
 ```bash
-cd ~/grafana-proxy
-swiftc -O -o GrafanaProxy main.swift
-cp GrafanaProxy /Applications/GrafanaProxy.app/Contents/MacOS/GrafanaProxy
-codesign --force --deep --sign - /Applications/GrafanaProxy.app
+cd ~/splittunnel
+swiftc -O -o SplitTunnel main.swift
+cp SplitTunnel /Applications/SplitTunnel.app/Contents/MacOS/SplitTunnel
+codesign --force --deep --sign - /Applications/SplitTunnel.app
 ```
 
 ## 配置文件
 
 菜单栏 **「设置…」**（快捷键 ⌘,）提供图形化设置界面：改完点「保存并应用」立即生效，
-底层会写入 `~/Library/Application Support/GrafanaProxy/config.json`（首次启动自动生成默认模板）。
+底层会写入 `~/Library/Application Support/SplitTunnel/config.json`（首次启动自动生成默认模板）。
 也可以直接编辑该文件后点菜单栏「重新加载配置」。
 
 ### ssh — SSH 隧道
@@ -29,7 +29,7 @@ codesign --force --deep --sign - /Applications/GrafanaProxy.app
 | `serverAliveInterval` | `60` | 秒，保活探测间隔 |
 | `connectTimeout` | `15` | 秒，SSH 连接超时 |
 | `retryIntervalSeconds` | `10` | 秒，掉线后重试间隔 |
-| `verbose` | `true` | ssh `-v` 调试日志写入 `~/Library/Logs/grafana-proxy-ssh.log` |
+| `verbose` | `true` | ssh `-v` 调试日志写入 `~/Library/Logs/splittunnel-ssh.log` |
 
 ### pac — 内置 PAC 服务器
 
@@ -49,11 +49,11 @@ codesign --force --deep --sign - /Applications/GrafanaProxy.app
 
 ## 日志
 
-- `~/Library/Logs/grafana-proxy-app.log` — App 运行日志
-- `~/Library/Logs/grafana-proxy-ssh.log` — ssh 调试日志（`ssh.verbose=true` 时）
+- `~/Library/Logs/splittunnel-app.log` — App 运行日志
+- `~/Library/Logs/splittunnel-ssh.log` — ssh 调试日志（`ssh.verbose=true` 时）
 
 ## 其它
 
 - 退出 App 会关闭隧道、停掉 PAC 服务，并撤销本 App 设置的系统 PAC（不碰其它设置）。
 - 隧道每次（重）连接时 1Password 会弹一次授权框，批准即连。
-- 开机自启由 LaunchAgent `~/Library/LaunchAgents/com.joe.grafanaproxy-autostart.plist` 提供。
+- 开机自启由 LaunchAgent `~/Library/LaunchAgents/com.joe.splittunnel-autostart.plist` 提供。

@@ -1,12 +1,12 @@
 //
-//  GrafanaProxy — 菜单栏小应用
+//  SplitTunnel — 菜单栏小应用
 //
 //  功能:
 //    1. 内置 PAC 服务器 (127.0.0.1:9555), 动态生成 PAC 脚本
 //    2. 拉起 SSH SOCKS5 隧道 (127.0.0.1:1080 -> joe-aliyun-hk-dev), 断线自动重连
 //    3. 自动把系统 PAC 设置到当前活动网络服务 (不影响 fastup 等 TUN 型代理)
 //
-//  构建: swiftc -O -o GrafanaProxy main.swift
+//  构建: swiftc -O -o SplitTunnel main.swift
 //
 
 import Cocoa
@@ -15,7 +15,7 @@ import SwiftUI
 
 // MARK: - 常量与工具
 
-let appLogPath = NSHomeDirectory() + "/Library/Logs/grafana-proxy-app.log"
+let appLogPath = NSHomeDirectory() + "/Library/Logs/splittunnel-app.log"
 
 func log(_ msg: String) {
     let f = DateFormatter()
@@ -80,7 +80,7 @@ func portInUse(_ port: Int) -> Bool {
     return true
 }
 
-// MARK: - 配置 (JSON, ~/Library/Application Support/GrafanaProxy/config.json)
+// MARK: - 配置 (JSON, ~/Library/Application Support/SplitTunnel/config.json)
 
 /// 配置值快照 (设置界面与 Config 之间传递)
 struct ConfigValues {
@@ -122,7 +122,7 @@ struct ConfigValues {
 final class Config {
     static let shared = Config()
 
-    let dir = NSHomeDirectory() + "/Library/Application Support/GrafanaProxy"
+    let dir = NSHomeDirectory() + "/Library/Application Support/SplitTunnel"
     let path: String
 
     // ---- 默认值 (config.json 缺失或字段缺失时使用) ----
@@ -133,7 +133,7 @@ final class Config {
     var serverAliveInterval = 60                 // 秒, 隧道保活探测间隔
     var connectTimeout = 15                      // 秒, SSH 连接超时
     var retryIntervalSeconds = 10.0              // 秒, 隧道掉线后重试间隔
-    var sshVerbose = true                        // ssh -v 调试日志写入 grafana-proxy-ssh.log
+    var sshVerbose = true                        // ssh -v 调试日志写入 splittunnel-ssh.log
     var pacPortStart = 9555                      // 内置 PAC 服务器端口范围
     var pacPortEnd = 9560
     var proxyDomains = ["bsquared.network"]      // 走隧道的域名(后缀匹配), 其余一律直连
@@ -229,7 +229,7 @@ final class Config {
     /// 把当前值写回 config.json
     func writeToDisk() {
         let template: [String: Any] = [
-            "_comment": "GrafanaProxy 配置。可通过菜单栏「设置…」界面修改, 也可直接编辑本文件后点「重新加载配置」。",
+            "_comment": "SplitTunnel 配置。可通过菜单栏「设置…」界面修改, 也可直接编辑本文件后点「重新加载配置」。",
             "ssh": [
                 "_comment": "SSH 隧道: hostAlias 为 ~/.ssh/config 主机别名; keyComment 为 1Password agent 中要用的公钥注释(每次连接仍会要求授权)",
                 "hostAlias": hostAlias,
@@ -537,7 +537,7 @@ final class TunnelManager {
         ssh.arguments = args
         ssh.standardOutput = FileHandle.nullDevice
         // stderr 进日志, 便于排障
-        let sshLogPath = NSHomeDirectory() + "/Library/Logs/grafana-proxy-ssh.log"
+        let sshLogPath = NSHomeDirectory() + "/Library/Logs/splittunnel-ssh.log"
         if !FileManager.default.fileExists(atPath: sshLogPath) {
             FileManager.default.createFile(atPath: sshLogPath, contents: nil)
         }
@@ -817,7 +817,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 单实例保护
-        let instances = NSRunningApplication.runningApplications(withBundleIdentifier: "com.joe.grafanaproxy")
+        let instances = NSRunningApplication.runningApplications(withBundleIdentifier: "com.joe.splittunnel")
         if instances.count > 1 {
             log("另一个实例已在运行, 本实例退出")
             NSApp.terminate(nil)
@@ -832,7 +832,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         PACServer.shared.onStateChange = { [weak self] in self?.refreshStatus() }
         TunnelManager.shared.onStateChange = { [weak self] in self?.refreshStatus() }
 
-        log("========== GrafanaProxy 启动 ==========")
+        log("========== SplitTunnel 启动 ==========")
         if CommandLine.arguments.contains("--settings") {
             actionOpenSettings()
         }
@@ -852,7 +852,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         TunnelManager.shared.stop()
         PACServer.shared.stop()
         SystemProxy.shared.removeIfOurs()
-        log("========== GrafanaProxy 退出 ==========")
+        log("========== SplitTunnel 退出 ==========")
     }
 
     private func setupMenuBar() {
@@ -893,7 +893,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func buildMenu() {
-        let header = NSMenuItem(title: "GrafanaProxy — BSquared 访问隧道", action: nil, keyEquivalent: "")
+        let header = NSMenuItem(title: "SplitTunnel — 域名分流隧道", action: nil, keyEquivalent: "")
         header.isEnabled = false
         menu.addItem(header)
         menu.addItem(.separator())
@@ -1042,7 +1042,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             )
             let host = NSHostingController(rootView: view)
             let win = NSWindow(contentViewController: host)
-            win.title = "GrafanaProxy 设置"
+            win.title = "SplitTunnel 设置"
             win.styleMask = [.titled, .closable, .miniaturizable]
             win.isReleasedWhenClosed = false
             settingsWindow = win
