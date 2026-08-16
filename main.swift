@@ -490,8 +490,17 @@ final class TunnelManager {
     /// 从 1Password SSH agent 动态导出指定注释的公钥。
     /// 只是"公钥指针", 私钥永远在 1Password 里, 每次连接仍会弹出授权框;
     /// 作用是限定 ssh 只向 agent 请求这一把钥匙 (避免多密钥撞服务器 MaxAuthTries)。
+    /// agent 可能暂时未就绪(1Password 启动中/锁屏), 失败时重试几次。
     private func agentPubkeyPath() -> String? {
-        let out = shell("/usr/bin/ssh-add", ["-L"])
+        var out = ""
+        for attempt in 1...4 {
+            out = shell("/usr/bin/ssh-add", ["-L"])
+            if out.contains(Config.shared.keyComment) { break }
+            if attempt < 4 {
+                log("tunnel: agent 暂未返回密钥 [\(Config.shared.keyComment)], 1 秒后重试 (\(attempt)/3)")
+                Thread.sleep(forTimeInterval: 1)
+            }
+        }
         let target = " " + Config.shared.keyComment
         for line in out.split(separator: "\n") {
             let l = String(line).trimmingCharacters(in: .whitespaces)
